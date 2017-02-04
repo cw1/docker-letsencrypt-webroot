@@ -23,8 +23,8 @@ exp_limit="${EXP_LIMIT:-30}"
 check_freq="${CHECK_FREQ:-30}"
 
 le_hook() {
-    all_links=($(env | grep -oP '^[0-9A-Z_-]+(?=_ENV_LE_RENEW_HOOK)'))
-    compose_links=($(env | grep -oP '^[0-9A-Z]+_[a-zA-Z0-9_.-]+_[0-9]+(?=_ENV_LE_RENEW_HOOK)'))
+    all_links=($(env | grep -oe '^[0-9A-Z_-]+(?=_ENV_LE_RENEW_HOOK)'))
+    compose_links=($(env | grep -oe '^[0-9A-Z]+_[a-zA-Z0-9_.-]+_[0-9]+(?=_ENV_LE_RENEW_HOOK)'))
     
     except_links=($(
         for link in ${compose_links[@]}; do
@@ -84,7 +84,7 @@ le_check() {
 
         echo "Checking domains for $DARRAYS..."
 
-        domains=($(openssl x509  -in $cert_file -text -noout | grep -oP '(?<=DNS:)[^,]*'))
+        domains=($(openssl x509  -in $cert_file -text -noout | grep -oe '(?<=DNS:)[^,]*'))
         new_domains=($(
             for domain in ${DARRAYS[@]}; do
                 [[ " ${domains[@]} " =~ " ${domain} " ]] || echo $domain
