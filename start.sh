@@ -23,31 +23,9 @@ exp_limit="${EXP_LIMIT:-30}"
 check_freq="${CHECK_FREQ:-30}"
 
 le_hook() {
-    all_links=($(env | grep -oe '^[0-9A-Z_-]+(?=_ENV_LE_RENEW_HOOK)'))
-    compose_links=($(env | grep -oe '^[0-9A-Z]+_[a-zA-Z0-9_.-]+_[0-9]+(?=_ENV_LE_RENEW_HOOK)'))
-    
-    except_links=($(
-        for link in ${compose_links[@]}; do
-            compose_project=$(echo $link | cut -f1 -d"_")
-            compose_name=$(echo $link | cut -f2- -d"_" | sed 's/_[^_]*$//g')
-            compose_instance=$(echo $link | grep -o '[^_]*$')
-            echo ${compose_name}_${compose_instance}
-            echo ${compose_name}
-        done
-    ))
-    
-    containers=($(
-        for link in ${all_links[@]}; do
-            [[ " ${except_links[@]} " =~ " ${link} " ]] || echo $link
-        done
-    ))
-    
-    for container in ${containers[@]}; do
-        command=$(eval echo \$${container}_ENV_LE_RENEW_HOOK)
-        command=$(echo $command | sed "s/@CONTAINER_NAME@/${container,,}/g")
-        echo "[INFO] Run: $command"
-        eval $command
-    done
+    if ! [ -z "$RESTART_HOOK" ] ; then
+        docker kill -s HUP $RESTART_HOOK
+    fi
 }
 
 le_fixpermissions() {
@@ -67,38 +45,8 @@ le_check() {
     cert_file="/etc/letsencrypt/live/$DARRAYS/fullchain.pem"
     
     if [ -f $cert_file ]; then
-    
-        exp=$(date -d "`openssl x509 -in $cert_file -text -noout|grep "Not After"|cut -c 25-`" +%s)
-        datenow=$(date -d "now" +%s)
-        days_exp=$[ ( $exp - $datenow ) / 86400 ]
-        
-        echo "Checking expiration date for $DARRAYS..."
-        
-        if [ "$days_exp" -gt "$exp_limit" ] ; then
-            echo "The certificate is up to date, no need for renewal ($days_exp days left)."
-        else
-            echo "The certificate for $DARRAYS is about to expire soon. Starting webroot renewal script..."
-            le_renew
-            echo "Renewal process finished for domain $DARRAYS"
-        fi
-
-        echo "Checking domains for $DARRAYS..."
-
-        domains=($(openssl x509  -in $cert_file -text -noout | grep -oe '(?<=DNS:)[^,]*'))
-        new_domains=($(
-            for domain in ${DARRAYS[@]}; do
-                [[ " ${domains[@]} " =~ " ${domain} " ]] || echo $domain
-            done
-        ))
-
-        if [ -z "$new_domains" ] ; then
-            echo "The certificate have no changes, no need for renewal"
-        else
-            echo "The list of domains for $DARRAYS certificate has been changed. Starting webroot renewal script..."
-            le_renew
-            echo "Renewal process finished for domain $DARRAYS"
-        fi
-
+      le_renew
+      echo "Renewal process finished for domain $DARRAYS"
 
     else
       echo "[INFO] certificate file not found for domain $DARRAYS. Starting webroot initial certificate request script..."
