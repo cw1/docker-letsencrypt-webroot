@@ -1,10 +1,7 @@
 # Let’s Encrypt (webroot) in a Docker
 ![Letsencrypt Logo](https://letsencrypt.org/images/letsencrypt-logo-horizontal.svg)
 
-Letsencrypt cert auto getting and renewal script based on [letsencrypt](https://quay.io/repository/letsencrypt/letsencrypt) base image.
-
-  - [GitHub](https://github.com/kvaps/docker-letsencrypt-webroot)
-  - [DockerHub](https://hub.docker.com/r/kvaps/letsencrypt-webroot/)
+Letsencrypt cert auto getting and renewal script based on Alpine Linux base image.
 
 ## Usage
 
@@ -30,7 +27,7 @@ Letsencrypt cert auto getting and renewal script based on [letsencrypt](https://
      -e 'DOMAINS=example.com www.example.com' \
      -e 'EMAIL=your@email.tld' \
      -e 'WEBROOT_PATH=/tmp/letsencrypt' \
-     kvaps/letsencrypt-webroot
+     cw1900/letsencrypt-webroot
 ```
 
 * Configure your app to use certificates in the following path:
@@ -81,7 +78,7 @@ nginx:
 
 letsencrypt:
   restart: always
-  image: kvaps/letsencrypt-webroot
+  image: cw1900/letsencrypt-webroot
   volumes:
     - /etc/localtime:/etc/localtime:ro
     - /var/run/docker.sock:/var/run/docker.sock
