@@ -18,8 +18,6 @@ fi
 DARRAYS=(${DOMAINS})
 EMAIL_ADDRESS=${EMAIL}
 LE_DOMAINS=("${DARRAYS[*]/#/-d }")
-
-exp_limit="${EXP_LIMIT:-30}"
 check_freq="${CHECK_FREQ:-30}"
 
 le_hook() {
